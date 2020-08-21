@@ -13,8 +13,8 @@ until it joins melpa.
 )
 #+end_src
   
-** TODO
-- enrich ~ac-sources~ 
+** TODO TODO
+
 - select Wikimedia project url based on emacs-server url
 - provide completion based on different namespaces (esp. Template = 10 and
   Articles).
