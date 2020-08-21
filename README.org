@@ -1,20 +1,20 @@
 * wpac.el
 ** Install
    
-This package is a work-in-progress. You can intall it with ~quelpa-use-package~
-until it join melpa.
+This package is a work-in-progress. You can install it with ~quelpa-use-package~
+until it joins melpa.
    
 #+begin_src emacs-lisp :tangle yes
 (use-package wpac
-  :quelpa (valign :fetcher github :repo "firmart/wpac")
+  :quelpa (wpac :fetcher github :repo "firmart/wpac")
   :ensure t
   :config
   ;; WIP
 )
 #+end_src
   
-** TODO
-- enrich ~ac-sources~ 
+** TODO TODO
+
 - select Wikimedia project url based on emacs-server url
 - provide completion based on different namespaces (esp. Template = 10 and
   Articles).
