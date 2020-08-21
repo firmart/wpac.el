@@ -44,6 +44,7 @@
 
 ;; built-in Emacs lib
 (require 'json)
+(require 'url-http)
 
 ;;; Code:
 ;;; Custom group
@@ -55,12 +56,13 @@
 
 ;;; Internal variables
 (defvar wpac--api-path "/w/api.php?")
+(defvar url-http-response-status nil)
 
 ;;; API
 ;;;; General
 
-(defun wpac--get-response (plist)
-  "GET url query's response from PLIST query."
+(defun wpac--get-response (plist &optional callback args)
+  "Retrieve results from PLIST query, and apply CALLBACK with ARGS if succeed."
   (let* ((url (concat wpac-project-base-url wpac--api-path (wpac--plist-to-url-params plist)))
          (buffer (url-retrieve-synchronously url))
          (code (url-http-symbol-value-in-buffer 'url-http-response-status buffer))
@@ -68,30 +70,69 @@
          (results-count 0)
          (json))
 
-    (message "%s" url)
-
     (when (= code 200)
-      (save-excursion
-        (switch-to-buffer buffer)
-        (setq json
-              (json-read-from-string
-               (buffer-substring url-http-end-of-headers (point-max))))))))
+      (with-temp-buffer buffer
+                        (goto-char (point-min))
+                        (re-search-forward "^\r?\n" nil t)
+                        (backward-char 1)
+                        ;; Saw the end of the headers
+                        (setq url-http-end-of-headers (set-marker (make-marker) (point)))
+                        (setq json
+                              (json-read-from-string
+                               (buffer-substring url-http-end-of-headers (point-max)))))
+      (unless (wpac--error-p json)
+        (if callback
+            (apply callback (list json args))
+          json)))))
 
 (defun wpac--error-p (plist)
-  "Return error message if there is error, otherwise return nil."
+  "Return error string if PLIST is an error, otherwise return nil."
   (when (plist-get plist :errors)
     (plist-get plist :*)))
 
+(defmacro wpac--query-wrapper (method query)
+  `(defun ,(intern (format "wpac-query-%s" method)) ,query
+     ,(format "Retrieve results of `%s' with parameters `%s'." query (format "wpac--query-%s" method))
+     (wpac--get-response
+      ,@query
+      #'wpac--plist-get-rec
+      ,(intern (format "wpac--query-%s" method)))))
+
+(defmacro wpac--interp-wrapper (method result)
+  `(defun ,(intern (format "wpac-interp-%s" method)) ,result
+     ,(format "Interpret results of `%s' with parameters `%s'." result (format "wpac--query-%s" method))
+     (wpac--get-plist-get-rec
+      ,@result
+      ,(intern (format "wpac--query-%s" method)))))
+
 ;;;; Search
 ;; See https://www.mediawiki.org/wiki/API:Search
+;;;;; Results count
 
-(defun wpac--results-count (plist)
-  "Return search results count."
-  (unless (wpac--error-p plist)
-    (wpac--plist-get-rec
-     plist
-     :query :searchinfo :totalhits)))
+(defvar wpac--query-results-count '(:query :searchinfo :totalhits))
+(wpac--interp-wrapper "results-count" (result))
+(wpac--query-wrapper "results-count" (query))
 
+;;; Autocomplete
+(defun wpac--ac-prefix-template ()
+  (let ((query `(:action "query"
+                         :list "prefixsearch"
+                         :format "json"
+                         :pslimit "10"
+                         :psnamespace 10
+                         :pssearch ,ac-prefix)))
+    (mapcar
+     (lambda (e) (string-remove-prefix "Template:" (plist-get e :title)))
+     (wpac--plist-get-rec
+      (wpac--get-response query)
+      '(:query :prefixsearch)))))
+
+(ac-define-source wp-template
+  '((candidates . wpac--ac-template)
+    (prefix . "{{\\(.*\\)")
+    (requires . 0)
+    (symbol . "t")
+    (cache)))
 ;;; Misc.
 ;;;; plist
 
@@ -106,7 +147,7 @@
     (nreverse vals)))
 
 (defun wpac--plist-to-url-params (plist)
-  "Convert a plist of form (:key . value) to a key1=value1&key2=value2 string."
+  "Convert a PLIST of form (:key . value) to a key1=value1&key2=value2 string."
   (string-join
    (mapcar
     (lambda (kv)
@@ -116,8 +157,8 @@
     (wpac--map-plist #'cons plist))
    "&"))
 
-(defun wpac--plist-get-rec (plist &rest keys)
-  "Recursively find KEYs in ALIST."
+(defun wpac--plist-get-rec (plist keys)
+  "Recursively find KEYS in PLIST."
   (while keys
     (setq plist (plist-get plist (pop keys))))
   plist)
