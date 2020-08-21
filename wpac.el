@@ -42,6 +42,9 @@
 
 ;; TODO: POST with json instead of url parameters.
 
+;; third-party
+(require 'auto-complete)
+
 ;; built-in Emacs lib
 (require 'json)
 (require 'url-http)
@@ -115,6 +118,7 @@
 
 ;;; Autocomplete
 (defun wpac--ac-prefix-template ()
+  "Complete Wikipedia templates based on prefix search."
   (let ((query `(:action "query"
                          :list "prefixsearch"
                          :format "json"
@@ -128,7 +132,8 @@
       '(:query :prefixsearch)))))
 
 (ac-define-source wp-template
-  '((candidates . wpac--ac-template)
+  "Define Wikipedia auto-complete source."
+  '((candidates . wpac--ac-prefix-template)
     (prefix . "{{\\(.*\\)")
     (requires . 0)
     (symbol . "t")
