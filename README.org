@@ -1,16 +1,20 @@
 * wpac.el
+  
+[[file:img/wpac-vs-wikipedia-template-search.png]]
+
 ** Install
    
 This package is a work-in-progress. You can install it with ~quelpa-use-package~
 until it joins melpa.
    
 #+begin_src emacs-lisp :tangle yes
-(use-package wpac
-  :quelpa (wpac :fetcher github :repo "firmart/wpac")
-  :ensure t
-  :config
-  ;; WIP
-)
+  (use-package wpac
+    :quelpa (wpac :fetcher github :repo "firmart/wpac")
+    :ensure t
+    :config
+    ;; WIP
+    ;; To complete wikipedia template, bind #'ac-complete-wp-template.
+  )
 #+end_src
   
 ** TODO TODO

@@ -74,15 +74,15 @@
          (json))
 
     (when (= code 200)
-      (with-temp-buffer buffer
-                        (goto-char (point-min))
-                        (re-search-forward "^\r?\n" nil t)
-                        (backward-char 1)
-                        ;; Saw the end of the headers
-                        (setq url-http-end-of-headers (set-marker (make-marker) (point)))
-                        (setq json
-                              (json-read-from-string
-                               (buffer-substring url-http-end-of-headers (point-max)))))
+      (with-current-buffer buffer
+        (goto-char (point-min))
+        (re-search-forward "^\r?\n" nil t)
+        (backward-char 1)
+        ;; Saw the end of the headers
+        (setq url-http-end-of-headers (set-marker (make-marker) (point)))
+        (setq json
+              (json-read-from-string
+               (buffer-substring url-http-end-of-headers (point-max)))))
       (unless (wpac--error-p json)
         (if callback
             (apply callback (list json args))
@@ -125,8 +125,12 @@
                          :pslimit "10"
                          :psnamespace 10
                          :pssearch ,ac-prefix)))
+    (message "%s" 
+             (concat wpac-project-base-url wpac--api-path (wpac--plist-to-url-params query)))
     (mapcar
-     (lambda (e) (string-remove-prefix "Template:" (plist-get e :title)))
+     ;; non-english projects return language specific equivalent prefix of "Template:"
+     ;; such as "Modèle:" (fr), "模板:" (zh). We get rid of them.
+     (lambda (e) (replace-regexp-in-string ".*?:\\(.*\\)" "\\1" (plist-get e :title)))
      (wpac--plist-get-rec
       (wpac--get-response query)
       '(:query :prefixsearch)))))
