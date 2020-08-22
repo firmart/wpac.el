@@ -59,7 +59,7 @@
 
 ;;; Internal variables
 (defvar wpac--api-path "/w/api.php?")
-(defvar url-http-response-status nil)
+(defvar url-http-end-of-headers nil)
 
 ;;; API
 ;;;; General
@@ -132,7 +132,6 @@
       '(:query :prefixsearch)))))
 
 (ac-define-source wp-template
-  "Define Wikipedia auto-complete source."
   '((candidates . wpac--ac-prefix-template)
     (prefix . "{{\\(.*\\)")
     (requires . 0)
