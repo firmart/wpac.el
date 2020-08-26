@@ -7,7 +7,7 @@
 ;; Version: 0.1
 ;; Keywords: convenience, autocompletion
 ;; URL: https://www.github.com/firmart/wpac
-;; Package-Requires: ((emacs "26"))
+;; Package-Requires: ((emacs "26") (auto-complete "1.5.1"))
 
 
 ;; This program is free software: you can redistribute it and/or
@@ -148,6 +148,7 @@
       wpac--query-prefix-search))))
 
 ;; TODO: replace wp-template prefix
+;; Beware about the syntax {{temp-name|par1|par2|...}}
 ;; (defun wpac--template-prefix-p ()
 ;;   "Existed (or to be existed) file prefix."
 ;;   (let* ((line-beg (line-beginning-position))
@@ -165,7 +166,7 @@
 
 (ac-define-source wp-template
   '((candidates . wpac--ac-prefix-template)
-    (prefix . "{{\\(.*\\)")
+    (prefix . "{{\\(.*\\)\\(|.+\\)*}}")
     (requires . 0)
     (symbol . "t")
     (action . ac-start)))
@@ -187,7 +188,7 @@
     ;; in a wikimedia projects website
     (when (wpac--edit-server-valid-url-p)
       (make-local-variable 'wpac-base-url)
-      (setq wpac-base-url (concat "https://" (wpac--edit-server-base-url "/"))
+      (setq wpac-base-url (concat "https://" (wpac--edit-server-base-url) "/"))
       (add-to-list 'ac-sources 'ac-source-wp-template)
       (auto-complete-mode t))))
 
