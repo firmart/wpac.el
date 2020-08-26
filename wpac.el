@@ -1,4 +1,4 @@
-;;; wpac.el --- Wikipedia autocompletion -*- lexical-binding: t; -*-
+;; wpac.el --- Wikipedia autocompletion -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 Firmin Martin
 
@@ -64,7 +64,8 @@
 ;;; API
 ;;;; General
 (defun wpac--form-url (plist)
-  (concat 
+  "Return the full url with parameters PLIST to query."
+  (concat
    wpac-base-url
    wpac--api-path
    (wpac--plist-to-url-params plist)))
@@ -124,7 +125,7 @@
 ;;; Autocomplete
 ;;;; General
 (defun wpac-config-default ()
-  "Set default recommended configuration"
+  "Set default recommended configuration."
   (add-hook 'edit-server-start-hook 'wpac-edit-server-setup-buffer))
 ;;;; Prefix Search
 
@@ -139,8 +140,7 @@
                          :psnamespace 10
                          :pssearch ,ac-prefix)))
     (message "%s" (wpac--form-url query))
-    (mapcar
-     ;; non-english projects return language specific equivalent prefix of "Template:"
+    (mapcar ;; non-english projects return language specific equivalent prefix of "Template:"
      ;; such as "Modèle:" (fr), "模板:" (zh). We get rid of them.
      (lambda (e) (replace-regexp-in-string ".*?:\\(.*\\)" "\\1" (plist-get e :title)))
      (wpac--plist-get-rec
@@ -166,14 +166,14 @@
 
 (ac-define-source wp-template
   '((candidates . wpac--ac-prefix-template)
-    (prefix . "{{\\(.*\\)\\(|.+\\)*}}")
+    (prefix . "{{\\(.*\\)\\(|.+\\)*\\(}}\\)?")
     (requires . 0)
     (symbol . "t")
     (action . ac-start)))
 
 ;;;; Edit-server
 (defun wpac--edit-server-base-url ()
-  "Return the base url of the edit-server buffer"
+  "Return the base url of the edit-server buffer."
   (require 'edit-server)
   (replace-regexp-in-string "\\(.*?\\)\\/.*" "\\1" edit-server-url))
 

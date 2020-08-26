@@ -12,14 +12,11 @@ until it joins melpa.
     :quelpa (wpac :fetcher github :repo "firmart/wpac")
     :ensure t
     :config
-    ;; WIP
-    ;; To complete wikipedia template, bind #'ac-complete-wp-template.
-  )
+    (wpac-config-default))
 #+end_src
   
 ** TODO TODO
-
-- select Wikimedia project url based on emacs-server url
+- Change name
 - provide completion based on different namespaces (esp. Template = 10 and
   Articles).
 - (long term) provide ~yas-snippet~ snippets for basic markups. 
